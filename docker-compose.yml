@@ -1,0 +1,9 @@
+services:
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    env_file:
+      - .env
+    command: ./vendor/bin/phpunit
