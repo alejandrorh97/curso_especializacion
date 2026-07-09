@@ -1,0 +1,36 @@
+# CursoEspecializacion
+
+## Requisitos
+- PHP 
+- Composer
+- Docker
+
+
+## Configurar variables de entorno
+
+Copiar archivo `.env.example` a `.env`:
+
+```bash
+cp .env.example .env
+```
+
+## Instalar dependencias
+
+```bash
+composer install
+```
+
+## Ejecutar pruebas
+
+### Local
+
+```bash
+./vendor/bin/phpunit
+```
+
+### Docker
+
+```bash
+docker compose up --build --abort-on-container-exit
+```
+
