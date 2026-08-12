@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+use PHPUnit\Framework\Attributes\TestDox;
+
 final class BookingTest extends ApiTest
 {
+	#[TestDox('GET /booking debe responder 200 y devolver un listado de IDs [Importancia: Crítica]')]
 	public function testGetBookingIds(): void
 	{
 		$response = $this->client()->get('booking');
 
-		$this->assertSame(200, $response->getStatusCode());
+		$this->recordHttpCall('GET', 'booking', $response, 200, 'Crítica', 'GET /booking - listado de IDs');
 
 		$payload = json_decode((string) $response->getBody(), true);
 
@@ -19,26 +22,28 @@ final class BookingTest extends ApiTest
 		$this->assertIsInt($payload[0]['bookingid']);
 	}
 
+	#[TestDox('GET /booking/{id} debe responder 200 y devolver los datos correctos del booking [Importancia: Crítica]')]
 	public function testGetBooking(): void
 	{
 		[$bookingId, $createdPayload] = $this->createBooking();
 
 		$response = $this->client()->get('booking/' . $bookingId);
 
-		$this->assertSame(200, $response->getStatusCode());
+		$this->recordHttpCall('GET', 'booking/' . $bookingId, $response, 200, 'Crítica', 'GET /booking/' . $bookingId);
 
 		$payload = json_decode((string) $response->getBody(), true);
 
 		$this->assertIsArray($payload);
-		$this->assertSame($createdPayload['firstname'], $payload['firstname']);
-		$this->assertSame($createdPayload['lastname'], $payload['lastname']);
-		$this->assertSame($createdPayload['totalprice'], $payload['totalprice']);
-		$this->assertSame($createdPayload['depositpaid'], $payload['depositpaid']);
-		$this->assertSame($createdPayload['bookingdates']['checkin'], $payload['bookingdates']['checkin']);
-		$this->assertSame($createdPayload['bookingdates']['checkout'], $payload['bookingdates']['checkout']);
-		$this->assertSame($createdPayload['additionalneeds'], $payload['additionalneeds']);
+		$this->recordFieldCheck('firstname', $createdPayload['firstname'], $payload['firstname'], 'Mayor');
+		$this->recordFieldCheck('lastname', $createdPayload['lastname'], $payload['lastname'], 'Mayor');
+		$this->recordFieldCheck('totalprice', $createdPayload['totalprice'], $payload['totalprice'], 'Mayor');
+		$this->recordFieldCheck('depositpaid', $createdPayload['depositpaid'], $payload['depositpaid'], 'Menor');
+		$this->recordFieldCheck('bookingdates.checkin', $createdPayload['bookingdates']['checkin'], $payload['bookingdates']['checkin'], 'Mayor');
+		$this->recordFieldCheck('bookingdates.checkout', $createdPayload['bookingdates']['checkout'], $payload['bookingdates']['checkout'], 'Mayor');
+		$this->recordFieldCheck('additionalneeds', $createdPayload['additionalneeds'], $payload['additionalneeds'], 'Menor');
 	}
 
+	#[TestDox('POST /booking debe crear un booking y devolver 200 con el ID generado [Importancia: Crítica]')]
 	public function testCreateBooking(): void
 	{
 		[$bookingId, $createdPayload] = $this->createBooking();
@@ -47,15 +52,16 @@ final class BookingTest extends ApiTest
 
 		$response = $this->client()->get('booking/' . $bookingId);
 
-		$this->assertSame(200, $response->getStatusCode());
+		$this->recordHttpCall('GET', 'booking/' . $bookingId, $response, 200, 'Crítica', 'GET /booking/' . $bookingId . ' tras crearlo');
 
 		$payload = json_decode((string) $response->getBody(), true);
 
 		$this->assertIsArray($payload);
-		$this->assertSame($createdPayload['firstname'], $payload['firstname']);
-		$this->assertSame($createdPayload['lastname'], $payload['lastname']);
+		$this->recordFieldCheck('firstname', $createdPayload['firstname'], $payload['firstname'], 'Mayor');
+		$this->recordFieldCheck('lastname', $createdPayload['lastname'], $payload['lastname'], 'Mayor');
 	}
 
+	#[TestDox('PUT /booking/{id} debe actualizar todos los campos y responder 200 [Importancia: Crítica]')]
 	public function testUpdateBooking(): void
 	{
 		[$bookingId] = $this->createBooking();
@@ -77,20 +83,21 @@ final class BookingTest extends ApiTest
 			'json' => $updatedPayload,
 		]);
 
-		$this->assertSame(200, $response->getStatusCode());
+		$this->recordHttpCall('PUT', 'booking/' . $bookingId, $response, 200, 'Crítica', 'PUT /booking/' . $bookingId);
 
 		$payload = json_decode((string) $response->getBody(), true);
 
 		$this->assertIsArray($payload);
-		$this->assertSame($updatedPayload['firstname'], $payload['firstname']);
-		$this->assertSame($updatedPayload['lastname'], $payload['lastname']);
-		$this->assertSame($updatedPayload['totalprice'], $payload['totalprice']);
-		$this->assertSame($updatedPayload['depositpaid'], $payload['depositpaid']);
-		$this->assertSame($updatedPayload['bookingdates']['checkin'], $payload['bookingdates']['checkin']);
-		$this->assertSame($updatedPayload['bookingdates']['checkout'], $payload['bookingdates']['checkout']);
-		$this->assertSame($updatedPayload['additionalneeds'], $payload['additionalneeds']);
+		$this->recordFieldCheck('firstname', $updatedPayload['firstname'], $payload['firstname'], 'Mayor');
+		$this->recordFieldCheck('lastname', $updatedPayload['lastname'], $payload['lastname'], 'Mayor');
+		$this->recordFieldCheck('totalprice', $updatedPayload['totalprice'], $payload['totalprice'], 'Mayor');
+		$this->recordFieldCheck('depositpaid', $updatedPayload['depositpaid'], $payload['depositpaid'], 'Menor');
+		$this->recordFieldCheck('bookingdates.checkin', $updatedPayload['bookingdates']['checkin'], $payload['bookingdates']['checkin'], 'Mayor');
+		$this->recordFieldCheck('bookingdates.checkout', $updatedPayload['bookingdates']['checkout'], $payload['bookingdates']['checkout'], 'Mayor');
+		$this->recordFieldCheck('additionalneeds', $updatedPayload['additionalneeds'], $payload['additionalneeds'], 'Menor');
 	}
 
+	#[TestDox('PATCH /booking/{id} debe actualizar campos parciales y responder 200 [Importancia: Mayor]')]
 	public function testPartialUpdateBooking(): void
 	{
 		[$bookingId] = $this->createBooking();
@@ -105,15 +112,16 @@ final class BookingTest extends ApiTest
 			'json' => $partialPayload,
 		]);
 
-		$this->assertSame(200, $response->getStatusCode());
+		$this->recordHttpCall('PATCH', 'booking/' . $bookingId, $response, 200, 'Mayor', 'PATCH /booking/' . $bookingId);
 
 		$payload = json_decode((string) $response->getBody(), true);
 
 		$this->assertIsArray($payload);
-		$this->assertSame($partialPayload['firstname'], $payload['firstname']);
-		$this->assertSame($partialPayload['additionalneeds'], $payload['additionalneeds']);
+		$this->recordFieldCheck('firstname', $partialPayload['firstname'], $payload['firstname'], 'Mayor');
+		$this->recordFieldCheck('additionalneeds', $partialPayload['additionalneeds'], $payload['additionalneeds'], 'Menor');
 	}
 
+	#[TestDox('DELETE /booking/{id} debe responder 201 y el booking debe dejar de existir (404) [Importancia: Crítica]')]
 	public function testDeleteBooking(): void
 	{
 		[$bookingId] = $this->createBooking();
@@ -122,13 +130,13 @@ final class BookingTest extends ApiTest
 			'headers' => $this->authHeaders(),
 		]);
 
-		$this->assertSame(201, $response->getStatusCode());
+		$this->recordHttpCall('DELETE', 'booking/' . $bookingId, $response, 201, 'Crítica', 'DELETE /booking/' . $bookingId);
 
 		$deletedResponse = $this->client()->get('booking/' . $bookingId, [
 			'http_errors' => false,
 		]);
 
-		$this->assertSame(404, $deletedResponse->getStatusCode());
+		$this->recordHttpCall('GET', 'booking/' . $bookingId, $deletedResponse, 404, 'Crítica', 'GET /booking/' . $bookingId . ' tras eliminarlo');
 	}
 
 	private function createBooking(): array
@@ -139,7 +147,7 @@ final class BookingTest extends ApiTest
 			'json' => $payload,
 		]);
 
-		$this->assertSame(200, $response->getStatusCode());
+		$this->recordHttpCall('POST', 'booking', $response, 200, 'Bloqueante', 'POST /booking - setup previo al test');
 
 		$responsePayload = json_decode((string) $response->getBody(), true);
 
@@ -168,4 +176,3 @@ final class BookingTest extends ApiTest
 		return array_replace_recursive($defaultPayload, $overrides);
 	}
 }
-
